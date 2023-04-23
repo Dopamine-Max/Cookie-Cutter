@@ -22,17 +22,18 @@ sqr = cv.imread('imgs/sqr.png')
 img_canvas = np.zeros((1080,1920,3),np.uint8)
 
 tipIds = [4,8,12,16,20]
-curr_x1, curr_y1 = 0,0
-prev_x1, prev_y1 = 0,0
-x1,y1 = [],[]
+curr_x, curr_y = 0,0
+prev_x, prev_y = 0,0
+x,y = [],[]
 distance_drawn = 0
+cut_areas = []
 
 gameOver = False
 NotWon = True
 toStartGame = False
 toStartTime = False
 
-TIMER_MAX=60
+TIMER_MAX=40
 TIMER=TIMER_MAX
 prev=time.time()
  
@@ -55,10 +56,12 @@ while not gameOver and TIMER>=0:
     img = cv.addWeighted(sqr,0.5,img,0.5,0)
     hands,img = detector.findHands(img)
     
-    """ cv.line(img, (851,426), (851,652), (26,67,102), thickness=22)
+    """ 
+    cv.line(img, (851,426), (851,652), (26,67,102), thickness=22)
     cv.line(img, (851,426), (1077,426), (26,67,102), thickness=22)
     cv.line(img, (1077,426), (1077,652), (26,67,102), thickness=22)
-    cv.line(img, (851,652), (1077,652), (26,67,102), thickness=22) """
+    cv.line(img, (851,652), (1077,652), (26,67,102), thickness=22) 
+    """
     
     #Starting point
     cv.circle(img, (851,427),13,(255,0,0),-1)
@@ -66,8 +69,8 @@ while not gameOver and TIMER>=0:
     if len(hands) != 0:
         fingers = []
         lmList = hands[0]['lmList']
-        cursor = lmList[8]
-        curr_x1, curr_y1 = cursor[0], cursor[1]
+        cursor = lmList[8] #make the index be the cursor
+        curr_x, curr_y = cursor[0], cursor[1]
             
         for id in range(1,5):
             if lmList[tipIds[id]][2] < lmList[tipIds[id]-2][2]:
@@ -75,40 +78,43 @@ while not gameOver and TIMER>=0:
             else:
                 fingers.append(0)
         
-        if fingers[1] and fingers[2] == False:
+        if fingers[1] and fingers[2] == False: #check that the ring and pinky are down
             
-            starting_pt_dist = math.sqrt((curr_x1 - 851)**2 + (curr_y1 - 426)**2)
+            starting_pt_dist = math.sqrt((curr_x - 851)**2 +  (curr_y - 426)**2)
         
-            if starting_pt_dist < 5:
+            if starting_pt_dist < 5: #check we are at starting point to begin
                 toStartGame = True
                 toStartTime = True
             
             if toStartGame:
-                x1.append(curr_x1)
-                y1.append(curr_y1)
+                x.append(curr_x)
+                y.append (curr_y)
                 
-                if prev_x1 == 0 and prev_y1 == 0:
-                    prev_x1, prev_y1 = curr_x1,curr_y1
+                if prev_x == 0 and prev_y == 0:
+                    prev_x, prev_y = curr_x, curr_y
                 
-                cv.line(img,(prev_x1,prev_y1),(curr_x1, curr_y1),(255,0,0),20)
-                cv.line(img_canvas,(prev_x1,prev_y1),(curr_x1, curr_y1),(255,0,0),20)
+                cv.line(img,(prev_x,prev_y),(curr_x, curr_y),(255,0,0),20)
+                cv.line(img_canvas,(prev_x,prev_y),(curr_x, curr_y),(255,0,0),20)
                 
-                prev_x1,prev_y1 = curr_x1,curr_y1
+                prev_x,prev_y = curr_x, curr_y
             
-                if len(x1) > 2 and len(y1) > 2:
-                    distance_drawn += math.sqrt((curr_x1 - x1[-2])**2 + (curr_y1 - y1[-2])**2)
+                if len(x) > 2 and len(y) > 2:
+                    distance_drawn += math.sqrt((curr_x - x[-2])**2 +  (curr_y - y[-2])**2)
 
-            """ if (851>cursor[0]>1077 and 427>cursor[1]>426) or (1078>cursor[0]>1077 and 426>cursor[1]>652) or (853>cursor[0]>851 and 654>cursor[1]>652) or (851>cursor[0]>1077 and 652>cursor[1]>426):
-                pass
-            else:
-                gameOver = True """
+                
+                if (840<curr_x<880 or 1050<curr_x<1090) or (420<curr_y<460 or 620<curr_y<660):
+                    pass
+                else:
+                    gameOver = True
+               
         
-            if starting_pt_dist < 5 and distance_drawn > (4*225):
+            if starting_pt_dist < 5 and distance_drawn > (4*224): #check for win
                 toStartGame = False
                 NotWon = False
                 gameOver = True
+                break
         
-            if toStartTime:
+            if toStartTime: #timer block
                 cv.putText(img,str(TIMER),(50,50),cv.FONT_HERSHEY_SIMPLEX,1,(0,int(255*(TIMER)/TIMER_MAX),int(255*(TIMER_MAX-TIMER)/TIMER)),4,cv.LINE_AA)
                 cur=time.time()
                 no=random.randint(1,5)
@@ -116,7 +122,7 @@ while not gameOver and TIMER>=0:
                     prev=cur
                     TIMER=TIMER-no
                 
-    img = cv.addWeighted(img,0.5,img_canvas,0.5,0)    
+    img = cv.addWeighted(img,0.5,img_canvas,0.5,0)
     cv.imshow('Squid Game', cv.resize(img,(0,0),fx=0.69,fy=0.69))
     if cv.waitKey(10) & 0xFF == ord('q'):
             break
