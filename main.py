@@ -101,7 +101,7 @@ while not gameOver and TIMER>=0:
                 if len(x) > 2 and len(y) > 2:
                     distance_drawn += math.sqrt((curr_x - x[-2])**2 +  (curr_y - y[-2])**2)
 
-                
+                #check if the cursor lies on the lines and also adjust difficulty for game
                 if (840<curr_x<880 or 1050<curr_x<1090) or (420<curr_y<460 or 620<curr_y<660):
                     pass
                 else:
