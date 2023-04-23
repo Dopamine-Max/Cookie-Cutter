@@ -108,7 +108,7 @@ while not gameOver and TIMER>=0:
                     gameOver = True
                
         
-            if starting_pt_dist < 5 and distance_drawn > (4*224): #check for win
+            if starting_pt_dist < 5 and distance_drawn > (4*222): #check for win
                 toStartGame = False
                 NotWon = False
                 gameOver = True
